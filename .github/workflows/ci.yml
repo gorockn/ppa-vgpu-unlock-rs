@@ -30,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - name: Timeline
-      uses: Kesin11/actions-timeline@v1
     - name: Checkout
       uses: actions/checkout@v4
     - name: Setup secrets
@@ -48,3 +46,11 @@ jobs:
       run: make docker-build
     - name: Build artifact
       run: make build
+  timeline:
+    needs: [build]
+    name: timeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+    - name: Timeline
+      uses: Kesin11/actions-timeline@v1
