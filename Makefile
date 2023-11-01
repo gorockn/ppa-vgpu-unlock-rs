@@ -127,7 +127,7 @@ define repogen
 endef
 
 .PHONY: repogen
-repogen: package
+repogen:
 ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-jammy/*.deb),)
 	@$(call repogen,ubuntu,jammy)
 endif
@@ -182,8 +182,12 @@ endif
 
 .PHONY: artifacts
 artifacts: reposign
+ifneq ($(wildcard $(PUBLIC_DIR)/index.html),)
 	@cp $(ASSETS_DIR)/index.html $(PUBLIC_DIR)/index.html
+endif
+ifneq ($(wildcard $(PUBLIC_DIR)/public.gpg.asc),)
 	@cp $(ASSETS_DIR)/public.gpg.asc $(PUBLIC_DIR)/public.gpg.asc
+endif
 
 ################################################################################
 # Generate GPG Keys (Manual)
