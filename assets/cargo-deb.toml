@@ -1,0 +1,24 @@
+
+
+[package.metadata.deb]
+name = "libvgpu-unlock-rs"
+maintainer = "Gorockn"
+copyright = "2021 Jonathan Johansson, 2021 Matt Bilker"
+license-file = ["LICENSE", "5"]
+extended-description = "Unlock vGPU functionality for consumer-grade NVIDIA GPUs."
+depends = "$auto"
+recommends = "systemd, kmod"
+section = "libs"
+priority = "optional"
+assets = [
+  ["target/release/libvgpu_unlock_rs.so", "usr/lib/libvgpu-unlock-rs.so", "644"],
+  ["config.toml", "etc/vgpu_unlock/profile_override.toml", "644"],
+  ["modules.conf", "etc/modules-load.d/vgpu_unlock.conf", "644"],
+  ["blacklist.conf", "etc/modprobe.d/blacklist-vgpu_unlock.conf", "644"],
+  ["systemd.conf", "etc/systemd/system/nvidia-vgpud.service.d/vgpu_unlock.conf", "644"],
+  ["systemd.conf", "etc/systemd/system/nvidia-vgpu-mgr.service.d/vgpu_unlock.conf", "644"],
+  ["README.md", "usr/share/doc/vgpu_unlock-rs/README.md", "644"],
+]
+conf-files = [
+  "/etc/vgpu_unlock/profile_override.toml",
+]
