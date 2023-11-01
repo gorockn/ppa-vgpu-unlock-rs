@@ -18,9 +18,9 @@ DOCKER_BUILD_ARGS = \
 	--build-arg "DEBFULLNAME=$(DEBFULLNAME)" \
 	--build-arg "DEBEMAIL=$(DEBEMAIL)"
 
-ifneq (${GITHUB_ACTION},)
-DOCKER_BUILD_ARGS += --cache-from=type=gha
-DOCKER_BUILD_ARGS += --cache-to=type=gha
+ifneq (${GITHUB_ACTION}${GITHUB_REPOSITORY},)
+DOCKER_BUILD_ARGS += --cache-from type=registry,ref=${GITHUB_REPOSITORY}:$(DISTRIB)-$(RELEASE)
+DOCKER_BUILD_ARGS += --cache-to type=registry,ref=${GITHUB_REPOSITORY}:$(DISTRIB)-$(RELEASE),mode=max
 endif
 
 ################################################################################
