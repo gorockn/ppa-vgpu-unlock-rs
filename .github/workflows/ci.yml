@@ -71,7 +71,7 @@ jobs:
         if-no-files-found: error
   artifacts:
     needs: [build]
-    name: repository
+    name: build:artifacts
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
