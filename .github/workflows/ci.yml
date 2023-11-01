@@ -28,6 +28,7 @@ jobs:
       CODENAME: ${{ matrix.codename }}
     name: build:${{ matrix.distrib }}:${{ matrix.codename }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
     - name: Timeline
       uses: Kesin11/actions-timeline@v1
