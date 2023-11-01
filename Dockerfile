@@ -3,7 +3,7 @@ ARG RELEASE
 
 FROM docker.io/library/$DISTRIB:$RELEASE
 
-RUN DEBIAN_FRONTEND=noninteractive \
+RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
  && apt-get install --no-install-recommends -y \
         build-essential \
