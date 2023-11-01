@@ -129,22 +129,22 @@ endef
 .PHONY: repogen
 repogen:
 ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-jammy/*.deb),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
 	@$(call repogen,ubuntu,jammy)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-focal/*.deb),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
 	@$(call repogen,ubuntu,focal)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bookworm/*.deb),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
 	@$(call repogen,debian,bookworm)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bullseye/*.deb),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
 	@$(call repogen,debian,bullseye)
 endif
 endif
@@ -176,22 +176,22 @@ ifneq ($(wildcard $(SECRET_DIR)/gpghome/trustdb.gpg),)
 		$(SECRET_DIR)/secret.gpg.asc
 endif
 ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release.gpg),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release.gpg),)
 	$(call reposign,ubuntu,jammy)
 endif
 endif
 ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release.gpg),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release.gpg),)
 	$(call reposign,ubuntu,focal)
 endif
 endif
 ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release.gpg),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release.gpg),)
 	$(call reposign,debian,bookworm)
 endif
 endif
 ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release.gpg),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release.gpg),)
 	$(call reposign,debian,bullseye)
 endif
 endif
