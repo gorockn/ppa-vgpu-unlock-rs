@@ -166,7 +166,7 @@ endef
 
 .PHONY: reposign
 reposign: repogen
-ifneq ($(wildcard $(SECRET_DIR)/gpghome/trustdb.gpg),)
+ifeq ($(wildcard $(SECRET_DIR)/gpghome/trustdb.gpg),)
 	@mkdir -p -m 0700 $(SECRET_DIR)/gpghome
 	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
