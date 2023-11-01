@@ -68,6 +68,9 @@ endif
 
 .PHONY: docker-build
 docker-build:
+ifneq (${GITHUB_ACTION}${GITHUB_REPOSITORY},)
+	@docker buildx create --use
+endif
 ifeq ($(shell docker images -q $(DISTRIB)-$(RELEASE)),)
 	@docker build $(DOCKER_BUILD_ARGS) --tag $(DISTRIB)-$(RELEASE) .
 endif
