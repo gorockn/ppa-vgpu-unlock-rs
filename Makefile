@@ -198,10 +198,10 @@ endif
 
 .PHONY: artifacts
 artifacts: reposign
-ifneq ($(wildcard $(PUBLIC_DIR)/index.html),)
+ifeq ($(wildcard $(PUBLIC_DIR)/index.html),)
 	@cp $(ASSETS_DIR)/index.html $(PUBLIC_DIR)/index.html
 endif
-ifneq ($(wildcard $(PUBLIC_DIR)/public.gpg.asc),)
+ifeq ($(wildcard $(PUBLIC_DIR)/public.gpg.asc),)
 	@cp $(ASSETS_DIR)/public.gpg.asc $(PUBLIC_DIR)/public.gpg.asc
 endif
 
