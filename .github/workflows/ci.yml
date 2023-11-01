@@ -41,12 +41,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Setup secrets
-      run: mkdir -m 0700 secret
-    - name: Import GPG passphrase
-      run: echo -n "${{ secrets.GPG_PASSPHRASE }}" | base64 -d > secret/passphrase
-    - name: Import GPG signing key
-      run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" > secret/secret.gpg.asc
     - name: Download source
       run: make download
     - name: Extract archive
@@ -76,6 +70,12 @@ jobs:
         path: build/target/debian
     - name: Check artifacts
       run: ls -lahR build/target/debian
+    - name: Setup secrets
+      run: mkdir -m 0700 secret
+    - name: Import GPG passphrase
+      run: echo -n "${{ secrets.GPG_PASSPHRASE }}" | base64 -d > secret/passphrase
+    - name: Import GPG signing key
+      run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" > secret/secret.gpg.asc
   timeline:
     needs: [repository]
     name: timeline
