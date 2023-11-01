@@ -62,8 +62,20 @@ jobs:
         path: build/target/debian/*.deb
         retention-days: 30
         if-no-files-found: error
-  timeline:
+  repository:
     needs: [build]
+    name: repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Download artifacts
+      uses: actions/upload-artifact@v3
+    - name: Check artifacts
+      run: ls -lahR
+  timeline:
+    needs: [repository]
     name: timeline
     runs-on: ubuntu-latest
     timeout-minutes: 3
