@@ -106,6 +106,13 @@ jobs:
       run: make artifacts
     - name: List artifacts
       run: ls -lhAR public
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifacts
+        path: public
+        retention-days: 30
+        if-no-files-found: error
   timeline:
     needs: [artifacts]
     if: always()
