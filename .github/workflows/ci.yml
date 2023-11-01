@@ -29,6 +29,8 @@ jobs:
     name: build:${{ matrix.distrib }}:${{ matrix.codename }}
     runs-on: ubuntu-latest
     steps:
+    - name: Timeline
+      uses: Kesin11/actions-timeline@v1
     - name: Checkout
       uses: actions/checkout@v4
     - name: Setup secrets
@@ -37,5 +39,11 @@ jobs:
       run: echo -n "${{ secrets.GPG_PASSPHRASE }}" | base64 -d > secret/passphrase
     - name: Import GPG signing key
       run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" > secret/secret.gpg.asc
+    - name: Download source
+      run: make download
+    - name: Extract archive
+      run: make extract
+    - name: Build docker
+      run: make docker-build
     - name: Build artifact
-      run: make
+      run: make build
