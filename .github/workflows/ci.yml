@@ -113,8 +113,31 @@ jobs:
         path: public
         retention-days: 30
         if-no-files-found: error
-  timeline:
+  deployment:
     needs: [artifacts]
+    name: deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: artifacts
+        path: public
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: public
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+  timeline:
+    needs: [deployment]
     if: always()
     name: timeline
     runs-on: ubuntu-latest
