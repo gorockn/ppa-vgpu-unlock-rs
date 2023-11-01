@@ -38,7 +38,7 @@ endif
 ################################################################################
 
 .PHONY: all
-all: build
+all: package
 
 ################################################################################
 # Build Matrix (CI Setup Phase)
@@ -76,14 +76,14 @@ ifeq ($(wildcard $(BUILD_DIR)/Cargo.toml),)
 	@cat "$(ASSETS_DIR)/cargo-deb-blacklist.conf" >> "$(BUILD_DIR)/blacklist.conf"
 endif
 
-.PHONY: docker-build
-docker-build:
+.PHONY: builder
+builder:
 ifeq ($(shell docker images -q $(DOCKER_IMAGE_BUILDER_TAG)),)
 	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_BUILDER_TAG) .
 endif
 
-.PHONY: build
-build: extract docker-build
+.PHONY: package
+package: extract builder
 ifeq ($(wildcard $(BUILD_DIR)/target/debian/*.deb),)
 	@docker run --rm -v "$(BUILD_DIR):/build" $(DOCKER_IMAGE_BUILDER_TAG) sh -c "cargo build --release && cargo deb"
 endif

@@ -50,18 +50,18 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build docker
-      run: make docker-build
-    - name: Download source
+    - name: Make builder
+      run: make builder
+    - name: Download archive
       run: make download
     - name: Extract archive
       run: make extract
-    - name: Build artifact
-      run: make build
-    - name: Upload artifact
+    - name: Build package
+      run: make package
+    - name: Upload package
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.target.distrib }}-${{ matrix.target.codename }}-deb
+        name: ${{ matrix.target.distrib }}-${{ matrix.target.codename }}
         path: build/target/debian/*.deb
         retention-days: 30
         if-no-files-found: error
