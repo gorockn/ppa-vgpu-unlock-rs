@@ -110,41 +110,41 @@ define repogen
 	@sed -i -E 's/___SUITE___/$(1)/' $(BUILD_DIR)/$(1)-$(2)/repos.conf
 	@sed -i -E 's/___CODENAME___/$(2)/' $(BUILD_DIR)/$(1)-$(2)/meta.conf
 	@sed -i -E 's/___CODENAME___/$(2)/' $(BUILD_DIR)/$(1)-$(2)/repos.conf
-	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-all
-	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-i386
-	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-amd64
-	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-armhf
-	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-arm64
-	@mkdir -p $(PUBLIC_DIR)/pool/$(1)/$(2)/main
-	@cp $(BUILD_DIR)/packages/$(1)-$(2)/*.deb $(PUBLIC_DIR)/pool/$(1)/$(2)/main/
+	@mkdir -p $(PUBLIC_DIR)/dists/$(2)/main/binary-all
+	@mkdir -p $(PUBLIC_DIR)/dists/$(2)/main/binary-i386
+	@mkdir -p $(PUBLIC_DIR)/dists/$(2)/main/binary-amd64
+	@mkdir -p $(PUBLIC_DIR)/dists/$(2)/main/binary-armhf
+	@mkdir -p $(PUBLIC_DIR)/dists/$(2)/main/binary-arm64
+	@mkdir -p $(PUBLIC_DIR)/pool/$(2)/main
+	@cp $(BUILD_DIR)/packages/$(1)-$(2)/*.deb $(PUBLIC_DIR)/pool/$(2)/main/
 	@cd $(PUBLIC_DIR) && apt-ftparchive \
 		generate $(BUILD_DIR)/$(1)-$(2)/repos.conf
 	@cd $(PUBLIC_DIR) && apt-ftparchive \
 		-c $(BUILD_DIR)/$(1)-$(2)/meta.conf \
 		release \
-		$(PUBLIC_DIR)/dists/$(1)/$(2) \
-		> $(PUBLIC_DIR)/dists/$(1)/$(2)/Release
+		$(PUBLIC_DIR)/dists/$(2) \
+		> $(PUBLIC_DIR)/dists/$(2)/Release
 endef
 
 .PHONY: repogen
 repogen:
 ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-jammy/*.deb),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/jammy/Release),)
 	@$(call repogen,ubuntu,jammy)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-focal/*.deb),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/focal/Release),)
 	@$(call repogen,ubuntu,focal)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bookworm/*.deb),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/bookworm/Release),)
 	@$(call repogen,debian,bookworm)
 endif
 endif
 ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bullseye/*.deb),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/bullseye/Release),)
 	@$(call repogen,debian,bullseye)
 endif
 endif
@@ -154,14 +154,14 @@ define reposign
 		--pinentry-mode loopback \
 		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		--clearsign \
-		-o $(PUBLIC_DIR)/dists/$(1)/$(2)/InRelease \
-		$(PUBLIC_DIR)/dists/$(1)/$(2)/Release
+		-o $(PUBLIC_DIR)/dists/$(2)/InRelease \
+		$(PUBLIC_DIR)/dists/$(2)/Release
 	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
 		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		-abs \
-		-o $(PUBLIC_DIR)/dists/$(1)/$(2)/Release.gpg \
-		$(PUBLIC_DIR)/dists/$(1)/$(2)/Release
+		-o $(PUBLIC_DIR)/dists/$(2)/Release.gpg \
+		$(PUBLIC_DIR)/dists/$(2)/Release
 endef
 
 .PHONY: reposign
@@ -175,23 +175,23 @@ ifeq ($(wildcard $(SECRET_DIR)/gpghome/trustdb.gpg),)
 		--allow-secret-key-import \
 		$(SECRET_DIR)/secret.gpg.asc
 endif
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release.gpg),)
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/jammy/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/jammy/Release.gpg),)
 	$(call reposign,ubuntu,jammy)
 endif
 endif
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release.gpg),)
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/focal/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/focal/Release.gpg),)
 	$(call reposign,ubuntu,focal)
 endif
 endif
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release.gpg),)
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/bookworm/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/bookworm/Release.gpg),)
 	$(call reposign,debian,bookworm)
 endif
 endif
-ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
-ifeq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release.gpg),)
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/bullseye/Release),)
+ifeq ($(wildcard $(PUBLIC_DIR)/dists/bullseye/Release.gpg),)
 	$(call reposign,debian,bullseye)
 endif
 endif
