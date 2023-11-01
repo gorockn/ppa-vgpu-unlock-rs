@@ -18,6 +18,11 @@ DOCKER_BUILD_ARGS = \
 	--build-arg "DEBFULLNAME=$(DEBFULLNAME)" \
 	--build-arg "DEBEMAIL=$(DEBEMAIL)"
 
+ifneq (${GITHUB_ACTION},)
+DOCKER_BUILD_ARGS += --cache-from=type=gha
+DOCKER_BUILD_ARGS += --cache-to=type=gha
+endif
+
 ################################################################################
 # Default Target (Build Only)
 ################################################################################
