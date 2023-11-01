@@ -211,6 +211,9 @@ endif
 
 .PHONY: generate-gpg
 generate-gpg: $(ASSETS_DIR)/public.gpg.asc $(SECRET_DIR)/secret.gpg.asc
+	@echo "Run the command below and paste it into your GitHub Actions secret."
+	@echo "cat secret/passphrase | base64 | xclip"
+	@echo "cat secret/secret.gpg.asc | base64 | xclip"
 $(SECRET_DIR)/passphrase:
 	@mkdir -p -m 0700 $(SECRET_DIR)
 	@pwgen -ncys1 64 > $(SECRET_DIR)/passphrase

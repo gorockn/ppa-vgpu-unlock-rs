@@ -97,7 +97,7 @@ jobs:
     - name: Import GPG passphrase
       run: echo -n "${{ secrets.GPG_PASSPHRASE }}" | base64 -d > secret/passphrase
     - name: Import GPG signing key
-      run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" > secret/secret.gpg.asc
+      run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" | base64 -d > secret/secret.gpg.asc
     - name: Make repository
       run: make repogen
     - name: Sign repository
