@@ -20,12 +20,8 @@ jobs:
         include:
         - { distrib: 'ubuntu', release: '22.04',   codename: 'jammy' }
         - { distrib: 'ubuntu', release: '20.04',   codename: 'focal' }
-        - { distrib: 'ubuntu', release: '18.04',   codename: 'bionic' }
-        - { distrib: 'ubuntu', release: '16.04',   codename: 'xenial' }
         - { distrib: 'debian', release: '12-slim', codename: 'bookworm' }
         - { distrib: 'debian', release: '11-slim', codename: 'bullseye' }
-        - { distrib: 'debian', release: '10-slim', codename: 'buster' }
-        - { distrib: 'debian', release: '9-slim',  codename: 'stretch' }
     env:
       DISTRIB:  ${{ matrix.distrib }}
       RELEASE:  ${{ matrix.release }}
