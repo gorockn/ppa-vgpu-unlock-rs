@@ -46,6 +46,13 @@ jobs:
       run: make docker-build
     - name: Build artifact
       run: make build
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.distrib }}-${{ matrix.codename }}
+        path: build/target/debian/*.deb
+        retention-days: 30
+        if-no-files-found: error
   timeline:
     needs: [build]
     name: timeline
