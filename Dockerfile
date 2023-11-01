@@ -7,12 +7,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
  && apt-get install --no-install-recommends -y \
         build-essential \
-        devscripts \
-        debhelper \
-        quilt \
         curl \
         ca-certificates \
-        liblzma-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
