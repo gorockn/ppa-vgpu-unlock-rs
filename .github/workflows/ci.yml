@@ -108,6 +108,7 @@ jobs:
       run: ls -lhAR public
   timeline:
     needs: [artifacts]
+    if: always()
     name: timeline
     runs-on: ubuntu-latest
     timeout-minutes: 3
