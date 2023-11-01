@@ -24,10 +24,13 @@ else
 DOCKER_IMAGE_REPOSITORY = ${GITHUB_REPOSITORY}
 endif
 
+DOCKER_IMAGE_CACHE_TAG   = $(DOCKER_IMAGE_REPOSITORY):cache-$(DISTRIB)-$(RELEASE)
+DOCKER_IMAGE_BUILDER_TAG = $(DOCKER_IMAGE_REPOSITORY):builder-$(DISTRIB)-$(RELEASE)
+
 ifneq (${GITHUB_ACTION},)
 DOCKER_BUILD_ARGS += --push
-DOCKER_BUILD_ARGS += --cache-from type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):cache-$(DISTRIB)-$(RELEASE)
-DOCKER_BUILD_ARGS += --cache-to type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):cache-$(DISTRIB)-$(RELEASE),mode=max
+DOCKER_BUILD_ARGS += --cache-from type=registry,ref=$(DOCKER_IMAGE_CACHE_TAG)
+DOCKER_BUILD_ARGS += --cache-to type=registry,ref=$(DOCKER_IMAGE_CACHE_TAG),mode=max
 endif
 
 ################################################################################
@@ -75,14 +78,14 @@ endif
 
 .PHONY: docker-build
 docker-build:
-ifeq ($(shell docker images -q $(DOCKER_IMAGE_REPOSITORY):latest-$(DISTRIB)-$(RELEASE)),)
-	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_REPOSITORY):builder-$(DISTRIB)-$(RELEASE) .
+ifeq ($(shell docker images -q $(DOCKER_IMAGE_BUILDER_TAG)),)
+	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_BUILDER_TAG) .
 endif
 
 .PHONY: build
 build: extract docker-build
 ifeq ($(wildcard $(BUILD_DIR)/target/debian/*.deb),)
-	@docker run --rm -v "$(BUILD_DIR):/build" $(DISTRIB)-$(RELEASE) sh -c "cargo build --release && cargo deb"
+	@docker run --rm -v "$(BUILD_DIR):/build" $(DOCKER_IMAGE_BUILDER_TAG) sh -c "cargo build --release && cargo deb"
 endif
 
 ################################################################################
