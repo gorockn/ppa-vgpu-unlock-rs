@@ -19,11 +19,28 @@ DOCKER_BUILD_ARGS = \
 	--build-arg "DEBEMAIL=$(DEBEMAIL)"
 
 ################################################################################
-# Build Package (CI Build Phase)
+# Default Target (Build Only)
 ################################################################################
 
 .PHONY: all
 all: build
+
+################################################################################
+# Build Matrix (CI Setup Phase)
+################################################################################
+
+.PHONY: matrix
+matrix:
+	@{ \
+		echo '{"distrib": "ubuntu", "release": "22.04", "codename": "jammy"}'; \
+		echo '{"distrib": "ubuntu", "release": "20.04", "codename": "focal"}'; \
+		echo '{"distrib": "debian", "release": "12-slim", "codename": "bookworm"}'; \
+		echo '{"distrib": "debian", "release": "11-slim", "codename": "bullseye"}'; \
+	} | jq -Mcs .
+
+################################################################################
+# Build Package (CI Build Phase)
+################################################################################
 
 .PHONY: download
 download:

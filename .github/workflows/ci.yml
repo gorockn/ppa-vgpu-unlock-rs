@@ -14,19 +14,28 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    name: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      matrix: ${{ steps.matrix.outputs.targets }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup matrix
+      id: matrix
+      run: echo "targets=$(make matrix)" >> $GITHUB_OUTPUT
   build:
+    needs: [setup]
     strategy:
       matrix:
-        include:
-        - { distrib: 'ubuntu', release: '22.04',   codename: 'jammy' }
-        - { distrib: 'ubuntu', release: '20.04',   codename: 'focal' }
-        - { distrib: 'debian', release: '12-slim', codename: 'bookworm' }
-        - { distrib: 'debian', release: '11-slim', codename: 'bullseye' }
+        target: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
-      DISTRIB:  ${{ matrix.distrib }}
-      RELEASE:  ${{ matrix.release }}
-      CODENAME: ${{ matrix.codename }}
-    name: build:${{ matrix.distrib }}:${{ matrix.codename }}
+      DISTRIB:  ${{ matrix.target.distrib }}
+      RELEASE:  ${{ matrix.target.release }}
+      CODENAME: ${{ matrix.target.codename }}
+    name: build:${{ matrix.target.distrib }}:${{ matrix.target.codename }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -49,7 +58,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.distrib }}-${{ matrix.codename }}
+        name: ${{ matrix.target.distrib }}-${{ matrix.target.codename }}-deb
         path: build/target/debian/*.deb
         retention-days: 30
         if-no-files-found: error
