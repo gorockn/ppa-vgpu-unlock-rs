@@ -69,7 +69,7 @@ jobs:
           build/target/debian/*.deb
         retention-days: 30
         if-no-files-found: error
-  repository:
+  artifacts:
     needs: [build]
     name: repository
     runs-on: ubuntu-latest
@@ -98,8 +98,16 @@ jobs:
       run: echo -n "${{ secrets.GPG_PASSPHRASE }}" | base64 -d > secret/passphrase
     - name: Import GPG signing key
       run: echo -n "${{ secrets.GPG_SIGNING_KEY }}" > secret/secret.gpg.asc
+    - name: Make repository
+      run: make repogen
+    - name: Sign repository
+      run: make reposign
+    - name: Generate artifacts
+      run: make artifacts
+    - name: List artifacts
+      run: ls -lhAR public
   timeline:
-    needs: [repository]
+    needs: [artifacts]
     name: timeline
     runs-on: ubuntu-latest
     timeout-minutes: 3

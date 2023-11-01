@@ -11,6 +11,8 @@ DEBEMAIL    = gorockn@users.noreply.github.com
 ASSETS_DIR   = $(CURDIR)/assets
 DOWNLOAD_DIR = $(CURDIR)/download
 BUILD_DIR    = $(CURDIR)/build
+SECRET_DIR   = $(CURDIR)/secret
+PUBLIC_DIR   = $(CURDIR)/public
 
 DOCKER_BUILD_ARGS = \
 	--build-arg "DISTRIB=$(DISTRIB)" \
@@ -90,95 +92,128 @@ endif
 ifeq ($(wildcard $(BUILD_DIR)/target/debian/SHA256SUMS),)
 	@docker run --rm -v "$(BUILD_DIR):/build" $(DOCKER_IMAGE_BUILDER_TAG) sh -c "cd target/debian && sha256sum *.deb > SHA256SUMS"
 endif
+ifeq ($(wildcard $(BUILD_DIR)/packages/$(DISTRIB)-$(CODENAME)/*.deb),)
+	@mkdir -p $(BUILD_DIR)/packages/$(DISTRIB)-$(CODENAME)
+	@cp $(BUILD_DIR)/target/debian/SHA256SUMS $(BUILD_DIR)/packages/$(DISTRIB)-$(CODENAME)/
+	@cp $(BUILD_DIR)/target/debian/*.deb $(BUILD_DIR)/packages/$(DISTRIB)-$(CODENAME)/
+endif
 
 ################################################################################
 # Build Repository (CI Integration Phase)
 ################################################################################
 
-# TODO
-
-define repository
-	@mkdir -p public/dists/$(1)/main/binary-all
-	@mkdir -p public/dists/$(1)/main/binary-i386
-	@mkdir -p public/dists/$(1)/main/binary-amd64
-	@mkdir -p public/dists/$(1)/main/binary-armhf
-	@mkdir -p public/dists/$(1)/main/binary-arm64
-	@mkdir -p public/pool/$(1)/main
-	@cp build/$(1)/*.deb public/pool/$(1)/main/
-	@cd public && apt-ftparchive generate ../build/debian-$(1)-repos.conf
-	@cd public && apt-ftparchive -c ../build/debian-$(1)-meta.conf release dists/$(1) > dists/$(1)/Release
+define repogen
+	@mkdir -p $(BUILD_DIR)/$(1)-$(2)
+	@cp $(ASSETS_DIR)/apt-meta.conf $(BUILD_DIR)/$(1)-$(2)/meta.conf
+	@cp $(ASSETS_DIR)/apt-repos.conf $(BUILD_DIR)/$(1)-$(2)/repos.conf
+	@sed -i -E 's/___SUITE___/$(1)/' $(BUILD_DIR)/$(1)-$(2)/meta.conf
+	@sed -i -E 's/___SUITE___/$(1)/' $(BUILD_DIR)/$(1)-$(2)/repos.conf
+	@sed -i -E 's/___CODENAME___/$(2)/' $(BUILD_DIR)/$(1)-$(2)/meta.conf
+	@sed -i -E 's/___CODENAME___/$(2)/' $(BUILD_DIR)/$(1)-$(2)/repos.conf
+	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-all
+	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-i386
+	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-amd64
+	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-armhf
+	@mkdir -p $(PUBLIC_DIR)/dists/$(1)/$(2)/main/binary-arm64
+	@mkdir -p $(PUBLIC_DIR)/pool/$(1)/$(2)/main
+	@cp $(BUILD_DIR)/packages/$(1)-$(2)/*.deb $(PUBLIC_DIR)/pool/$(1)/$(2)/main/
+	@cd $(PUBLIC_DIR) && apt-ftparchive \
+		generate $(BUILD_DIR)/$(1)-$(2)/repos.conf
+	@cd $(PUBLIC_DIR) && apt-ftparchive \
+		-c $(BUILD_DIR)/$(1)-$(2)/meta.conf \
+		release \
+		$(PUBLIC_DIR)/dists/$(1)/$(2) \
+		> $(PUBLIC_DIR)/dists/$(1)/$(2)/Release
 endef
 
-.PHONY: repository
-repository: package
-	@$(call repository,bullseye)
-	@$(call repository,bookworm)
-	@$(call repository,focal)
-	@$(call repository,jammy)
+.PHONY: repogen
+repogen: package
+ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-jammy/*.deb),)
+	@$(call repogen,ubuntu,jammy)
+endif
+ifneq ($(wildcard $(BUILD_DIR)/packages/ubuntu-focal/*.deb),)
+	@$(call repogen,ubuntu,focal)
+endif
+ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bookworm/*.deb),)
+	@$(call repogen,debian,bookworm)
+endif
+ifneq ($(wildcard $(BUILD_DIR)/packages/debian-bullseye/*.deb),)
+	@$(call repogen,debian,bullseye)
+endif
 
 define reposign
-	@gpg --homedir secret/gpghome \
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
-		--passphrase "$$(cat secret/passphrase)" \
+		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		--clearsign \
-		-o public/dists/$(1)/InRelease \
-		public/dists/$(1)/Release
-	@gpg --homedir secret/gpghome \
+		-o $(PUBLIC_DIR)/dists/$(1)/$(2)/InRelease \
+		$(PUBLIC_DIR)/dists/$(1)/$(2)/Release
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
-		--passphrase "$$(cat secret/passphrase)" \
+		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		-abs \
-		-o public/dists/$(1)/Release.gpg \
-		public/dists/$(1)/Release
+		-o $(PUBLIC_DIR)/dists/$(1)/$(2)/Release.gpg \
+		$(PUBLIC_DIR)/dists/$(1)/$(2)/Release
 endef
 
 .PHONY: reposign
-reposign: repository
-	@mkdir -p -m 0700 secret/gpghome
-	@gpg --homedir secret/gpghome \
+reposign: repogen
+ifneq ($(wildcard $(SECRET_DIR)/gpghome/trustdb.gpg),)
+	@mkdir -p -m 0700 $(SECRET_DIR)/gpghome
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
-		--passphrase "$$(cat secret/passphrase)" \
+		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		--import \
 		--allow-secret-key-import \
-		secret/secret.gpg.asc
-	$(call reposign,bullseye)
-	$(call reposign,bookworm)
-	$(call reposign,focal)
-	$(call reposign,jammy)
+		$(SECRET_DIR)/secret.gpg.asc
+endif
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/jammy/Release),)
+	$(call reposign,ubuntu,jammy)
+endif
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/ubuntu/focal/Release),)
+	$(call reposign,ubuntu,focal)
+endif
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bookworm/Release),)
+	$(call reposign,debian,bookworm)
+endif
+ifneq ($(wildcard $(PUBLIC_DIR)/dists/debian/bullseye/Release),)
+	$(call reposign,debian,bullseye)
+endif
 
-.PHONY: assets
-assets: reposign
-	@cp assets/index.html public/index.html
-	@cp assets/public.gpg.asc public/public.gpg.asc
+.PHONY: artifacts
+artifacts: reposign
+	@cp $(ASSETS_DIR)/index.html $(PUBLIC_DIR)/index.html
+	@cp $(ASSETS_DIR)/public.gpg.asc $(PUBLIC_DIR)/public.gpg.asc
 
 ################################################################################
 # Generate GPG Keys (Manual)
 ################################################################################
 
 .PHONY: generate-gpg
-generate-gpg: assets/public.gpg.asc secret/secret.gpg.asc
-secret/passphrase:
-	@mkdir -p -m 0700 secret
-	@pwgen -ncys1 64 > secret/passphrase
-	@chmod 0600 secret/passphrase
-secret/gpghome: secret/passphrase
-	@mkdir -p -m 0700 secret/gpghome
-	@gpg --homedir secret/gpghome \
+generate-gpg: $(ASSETS_DIR)/public.gpg.asc $(SECRET_DIR)/secret.gpg.asc
+$(SECRET_DIR)/passphrase:
+	@mkdir -p -m 0700 $(SECRET_DIR)
+	@pwgen -ncys1 64 > $(SECRET_DIR)/passphrase
+	@chmod 0600 $(SECRET_DIR)/passphrase
+$(SECRET_DIR)/gpghome: $(SECRET_DIR)/passphrase
+	@mkdir -p -m 0700 $(SECRET_DIR)/gpghome
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
-		--passphrase "$$(cat secret/passphrase)" \
+		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		--quick-generate-key "$(DEBFULLNAME) <$(DEBEMAIL)>" \
 		default default 10y
-assets/public.gpg.asc: secret/gpghome
-	@gpg --homedir secret/gpghome \
+$(ASSETS_DIR)/public.gpg.asc: $(SECRET_DIR)/gpghome
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--export --armor \
-		--output assets/public.gpg.asc \
+		--output $(ASSETS_DIR)/public.gpg.asc \
 		--yes \
 		"$(DEBFULLNAME) <$(DEBEMAIL)>"
-secret/secret.gpg.asc: secret/gpghome secret/passphrase
-	@gpg --homedir secret/gpghome \
+$(SECRET_DIR)/secret.gpg.asc: $(SECRET_DIR)/gpghome $(SECRET_DIR)/passphrase
+	@gpg --homedir $(SECRET_DIR)/gpghome \
 		--pinentry-mode loopback \
-		--passphrase "$$(cat secret/passphrase)" \
+		--passphrase "$$(cat $(SECRET_DIR)/passphrase)" \
 		--export-secret-keys --armor \
-		--output secret/secret.gpg.asc \
+		--output $(SECRET_DIR)/secret.gpg.asc \
 		--yes \
 		"$(DEBFULLNAME) <$(DEBEMAIL)>"
 
@@ -189,7 +224,5 @@ secret/secret.gpg.asc: secret/gpghome secret/passphrase
 .PHONY: clean
 clean:
 	@docker system prune -f
-
-.PHONY: distclean
-distclean: clean
 	@sudo rm -fr $(BUILD_DIR)
+	@sudo rm -fr $(PUBLIC_DIR)
