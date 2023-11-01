@@ -3,7 +3,8 @@ ARG RELEASE
 
 FROM docker.io/library/$DISTRIB:$RELEASE
 
-RUN apt-get update \
+RUN DEBIAN_FRONTEND=noninteractive \
+ && apt-get update \
  && apt-get install --no-install-recommends -y \
         build-essential \
         devscripts \
