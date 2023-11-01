@@ -58,11 +58,15 @@ jobs:
       run: make extract
     - name: Build package
       run: make package
+    - name: Show sha256sum
+      run: cat build/target/debian/SHA256SUMS
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.target.distrib }}-${{ matrix.target.codename }}
-        path: build/target/debian/*.deb
+        path: |
+          build/target/debian/SHA256SUMS
+          build/target/debian/*.deb
         retention-days: 30
         if-no-files-found: error
   repository:
@@ -73,12 +77,20 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Download artifacts
+    - name: Download packages
       uses: actions/download-artifact@v3
       with:
-        path: build/target/debian
-    - name: Check artifacts
-      run: ls -lahR build/target/debian
+        path: build/packages
+    - name: List packages
+      run: ls -lhAR build/packages
+    - name: Check sha256sum
+      run: |
+        cd build/packages
+        for d in *; do
+          pushd "$d"
+          sha256sum -c SHA256SUMS
+          popd
+        done
     - name: Setup secrets
       run: mkdir -m 0700 secret
     - name: Import GPG passphrase

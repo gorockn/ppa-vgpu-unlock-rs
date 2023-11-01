@@ -87,6 +87,9 @@ package: extract builder
 ifeq ($(wildcard $(BUILD_DIR)/target/debian/*.deb),)
 	@docker run --rm -v "$(BUILD_DIR):/build" $(DOCKER_IMAGE_BUILDER_TAG) sh -c "cargo build --release && cargo deb"
 endif
+ifeq ($(wildcard $(BUILD_DIR)/target/debian/SHA256SUMS),)
+	@docker run --rm -v "$(BUILD_DIR):/build" $(DOCKER_IMAGE_BUILDER_TAG) sh -c "cd target/debian && sha256sum *.deb > SHA256SUMS"
+endif
 
 ################################################################################
 # Build Repository (CI Integration Phase)
