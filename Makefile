@@ -26,8 +26,8 @@ endif
 
 ifneq (${GITHUB_ACTION},)
 DOCKER_BUILD_ARGS += --push
-DOCKER_BUILD_ARGS += --cache-from type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):build-$(DISTRIB)-$(RELEASE)
-DOCKER_BUILD_ARGS += --cache-to type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):build-$(DISTRIB)-$(RELEASE),mode=max
+DOCKER_BUILD_ARGS += --cache-from type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):cache-$(DISTRIB)-$(RELEASE)
+DOCKER_BUILD_ARGS += --cache-to type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):cache-$(DISTRIB)-$(RELEASE),mode=max
 endif
 
 ################################################################################
@@ -76,7 +76,7 @@ endif
 .PHONY: docker-build
 docker-build:
 ifeq ($(shell docker images -q $(DOCKER_IMAGE_REPOSITORY):latest-$(DISTRIB)-$(RELEASE)),)
-	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_REPOSITORY):latest-$(DISTRIB)-$(RELEASE) .
+	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_REPOSITORY):builder-$(DISTRIB)-$(RELEASE) .
 endif
 
 .PHONY: build
