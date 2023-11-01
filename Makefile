@@ -18,9 +18,16 @@ DOCKER_BUILD_ARGS = \
 	--build-arg "DEBFULLNAME=$(DEBFULLNAME)" \
 	--build-arg "DEBEMAIL=$(DEBEMAIL)"
 
-ifneq (${GITHUB_ACTION}${GITHUB_REPOSITORY},)
-DOCKER_BUILD_ARGS += --cache-from type=registry,ref=${GITHUB_REPOSITORY}:$(DISTRIB)-$(RELEASE)
-DOCKER_BUILD_ARGS += --cache-to type=registry,ref=${GITHUB_REPOSITORY}:$(DISTRIB)-$(RELEASE),mode=max
+ifeq (${GITHUB_REPOSITORY},)
+DOCKER_IMAGE_REPOSITORY = gorockn/ppa-vgpu-unlock-rs
+else
+DOCKER_IMAGE_REPOSITORY = ${GITHUB_REPOSITORY}
+endif
+
+ifneq (${GITHUB_ACTION},)
+DOCKER_BUILD_ARGS += --push
+DOCKER_BUILD_ARGS += --cache-from type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):build-$(DISTRIB)-$(RELEASE)
+DOCKER_BUILD_ARGS += --cache-to type=registry,ref=$(DOCKER_IMAGE_REPOSITORY):build-$(DISTRIB)-$(RELEASE),mode=max
 endif
 
 ################################################################################
@@ -68,8 +75,8 @@ endif
 
 .PHONY: docker-build
 docker-build:
-ifeq ($(shell docker images -q $(DISTRIB)-$(RELEASE)),)
-	@docker build $(DOCKER_BUILD_ARGS) --tag $(DISTRIB)-$(RELEASE) .
+ifeq ($(shell docker images -q $(DOCKER_IMAGE_REPOSITORY):latest-$(DISTRIB)-$(RELEASE)),)
+	@docker build $(DOCKER_BUILD_ARGS) --tag $(DOCKER_IMAGE_REPOSITORY):latest-$(DISTRIB)-$(RELEASE) .
 endif
 
 .PHONY: build
